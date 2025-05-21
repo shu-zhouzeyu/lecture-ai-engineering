@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+
 # import pytest
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
@@ -26,15 +27,18 @@ class DataLoader:
             default_paths = [
                 "/Users/user/Desktop/UTokyo/2025S/AIエンジニアリング実践講座/01_講義資料/lecture-ai-engineering/day5/演習2/data/Titanic.csv",
                 "data/Titanic.csv",  # GitHub Actions用の相対パス
-                "day5/演習2/data/Titanic.csv"  # リポジトリルートからの相対パス
+                "day5/演習2/data/Titanic.csv",  # リポジトリルートからの相対パス
             ]
-            
+
             for p in default_paths:
                 if os.path.exists(p):
                     return pd.read_csv(p)
-            
+
             # どのパスも見つからない場合はエラーを発生させる
-            raise FileNotFoundError("Titanicデータファイルが見つかりませんでした。パスを指定してください。")
+            raise FileNotFoundError(
+                "Titanicデータファイルが見つかりませんでした。パスを指定してください。"
+            )
+
     # グローバル変数として定義（ファイルの上部付近に追加）
     DATA_PATH = os.path.join(os.path.dirname(__file__), "../data/Titanic.csv")
     MODEL_DIR = os.path.join(os.path.dirname(__file__), "../models")
@@ -133,8 +137,6 @@ class DataValidator:
         except Exception as e:
             print(f"Great Expectations検証エラー: {e}")
             return False, [{"success": False, "error": str(e)}]
-
-
 
 
 class ModelTester:
@@ -328,4 +330,3 @@ def test_inference_speed_and_accuracy():
     assert (
         metrics["inference_time"] < 1.0
     ), f"推論時間が長すぎです: {metrics['inference_time']}秒"
-
