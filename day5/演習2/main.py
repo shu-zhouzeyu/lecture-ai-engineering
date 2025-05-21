@@ -313,7 +313,8 @@ def test_inference_speed_and_accuracy():
     assert (
         metrics["inference_time"] < 1.0
     ), f"推論時間が長すぎです: {metrics['inference_time']}秒"
-    
+
+
 def test_model_exists():
     """モデルファイルが存在するか確認"""
     if not os.path.exists(model_path):

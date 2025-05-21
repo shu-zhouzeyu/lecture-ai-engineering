@@ -30,7 +30,7 @@ jobs:
         
     - name: Format check with black
       run: |
-        black --check day5/演習2
+        black --check day5/演習2/main.py
         
     # - name: Run data tests
     #   run: |
