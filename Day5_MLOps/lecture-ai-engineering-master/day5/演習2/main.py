@@ -312,4 +312,4 @@ if __name__ == "__main__":
         # 推論時間の確認
         assert (
             metrics["inference_time"] < 1.0
-        ), f"推論時間が長すぎます: {metrics['inference_time']}秒"
+        ), f"推論時間が長すぎる: {metrics['inference_time']}秒"
