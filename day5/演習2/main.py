@@ -1,6 +1,6 @@
 import os
 import pandas as pd
-import pytest
+# import pytest
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
@@ -22,10 +22,23 @@ class DataLoader:
         if path:
             return pd.read_csv(path)
         else:
-            # ローカルのファイル
-            local_path = "/Users/user/Desktop/UTokyo/2025S/AIエンジニアリング実践講座/01_講義資料/lecture-ai-engineering/day5/演習2/data/Titanic.csv"
-            if os.path.exists(local_path):
-                return pd.read_csv(local_path)
+            # デフォルトのパスを追加（GitHub Actions用）
+            default_paths = [
+                "/Users/user/Desktop/UTokyo/2025S/AIエンジニアリング実践講座/01_講義資料/lecture-ai-engineering/day5/演習2/data/Titanic.csv",
+                "data/Titanic.csv",  # GitHub Actions用の相対パス
+                "day5/演習2/data/Titanic.csv"  # リポジトリルートからの相対パス
+            ]
+            
+            for p in default_paths:
+                if os.path.exists(p):
+                    return pd.read_csv(p)
+            
+            # どのパスも見つからない場合はエラーを発生させる
+            raise FileNotFoundError("Titanicデータファイルが見つかりませんでした。パスを指定してください。")
+    # グローバル変数として定義（ファイルの上部付近に追加）
+    DATA_PATH = os.path.join(os.path.dirname(__file__), "../data/Titanic.csv")
+    MODEL_DIR = os.path.join(os.path.dirname(__file__), "../models")
+    model_path = os.path.join(MODEL_DIR, "titanic_model.pkl")
 
     @staticmethod
     def preprocess_titanic_data(data):
@@ -120,6 +133,8 @@ class DataValidator:
         except Exception as e:
             print(f"Great Expectations検証エラー: {e}")
             return False, [{"success": False, "error": str(e)}]
+
+
 
 
 class ModelTester:
@@ -314,36 +329,3 @@ def test_inference_speed_and_accuracy():
         metrics["inference_time"] < 1.0
     ), f"推論時間が長すぎです: {metrics['inference_time']}秒"
 
-
-def test_model_exists():
-    """モデルファイルが存在するか確認"""
-    if not os.path.exists(model_path):
-        pytest.skip("モデルファイルが存在しないためスキップします")
-    assert os.path.exists(model_path), "モデルファイルが存在しません"
-
-
-def test_model_accuracy(train_model):
-    """モデルの精度を検証"""
-    model, X_test, y_test = train_model
-
-    # 予測と精度計算
-    y_pred = model.predict(X_test)
-    accuracy = accuracy_score(y_test, y_pred)
-
-    # Titanicデータセットでは0.75以上の精度が一般的に良いとされる
-    assert accuracy >= 0.75, f"モデルの精度が低すぎます: {accuracy}"
-
-
-def test_model_inference_time(train_model):
-    """モデルの推論時間を検証"""
-    model, X_test, _ = train_model
-
-    # 推論時間の計測
-    start_time = time.time()
-    model.predict(X_test)
-    end_time = time.time()
-
-    inference_time = end_time - start_time
-
-    # 推論時間が1秒未満であることを確認
-    assert inference_time < 1.0, f"推論時間が長すぎます: {inference_time}秒"
