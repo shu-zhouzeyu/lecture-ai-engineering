@@ -40,6 +40,8 @@ jobs:
     #   run: |
     #     pytest day5/演習2/tests/test_model.py -v
 
+
+    # - name: Type check with mypy
     - name: Run pytest on main.py
       run: |
         pytest day5/演習2/main.py -v
