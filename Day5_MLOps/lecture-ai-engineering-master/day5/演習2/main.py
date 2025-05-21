@@ -1,7 +1,5 @@
 import os
 import pandas as pd
-
-# import pytest
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
@@ -18,31 +16,17 @@ class DataLoader:
     """データロードを行うクラス"""
 
     @staticmethod
-    def load_titanic_data(path=None):
+    def load_titanic_data(
+        path="/Users/user/Desktop/UTokyo/2025S/AIエンジニアリング実践講座/Day5_MLOps/lecture-ai-engineering-master/day5/演習2/data/Titanic.csv",
+    ):
         """Titanicデータセットを読み込む"""
         if path:
             return pd.read_csv(path)
         else:
-            # デフォルトのパスを追加（GitHub Actions用）
-            default_paths = [
-                "/Users/user/Desktop/UTokyo/2025S/AIエンジニアリング実践講座/01_講義資料/lecture-ai-engineering/day5/演習2/data/Titanic.csv",
-                "data/Titanic.csv",  # GitHub Actions用の相対パス
-                "day5/演習2/data/Titanic.csv",  # リポジトリルートからの相対パス
-            ]
-
-            for p in default_paths:
-                if os.path.exists(p):
-                    return pd.read_csv(p)
-
-            # どのパスも見つからない場合はエラーを発生させる
-            raise FileNotFoundError(
-                "Titanicデータファイルが見つかりませんでした。パスを指定してください。"
-            )
-
-    # グローバル変数として定義（ファイルの上部付近に追加）
-    DATA_PATH = os.path.join(os.path.dirname(__file__), "../data/Titanic.csv")
-    MODEL_DIR = os.path.join(os.path.dirname(__file__), "../models")
-    model_path = os.path.join(MODEL_DIR, "titanic_model.pkl")
+            # ローカルのファイル
+            local_path = "data/Titanic.csv"
+            if os.path.exists(local_path):
+                return pd.read_csv(local_path)
 
     @staticmethod
     def preprocess_titanic_data(data):
@@ -305,28 +289,27 @@ if __name__ == "__main__":
     baseline_ok = ModelTester.compare_with_baseline(metrics)
     print(f"ベースライン比較: {'合格' if baseline_ok else '不合格'}")
 
+    def test_inference_speed_and_accuracy():
+        """推論速度と精度のテスト"""
+        # データ準備
+        data = DataLoader.load_titanic_data()
+        X, y = DataLoader.preprocess_titanic_data(data)
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.2, random_state=42
+        )
 
-def test_inference_speed_and_accuracy():
-    """推論速度と精度のテスト"""
-    # データ準備
-    data = DataLoader.load_titanic_data()
-    X, y = DataLoader.preprocess_titanic_data(data)
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42
-    )
+        # モデル学習
+        model = ModelTester.train_model(X_train, y_train)
 
-    # モデル学習
-    model = ModelTester.train_model(X_train, y_train)
+        # 評価
+        metrics = ModelTester.evaluate_model(model, X_test, y_test)
 
-    # 評価
-    metrics = ModelTester.evaluate_model(model, X_test, y_test)
+        # ベースラインとの比較
+        assert ModelTester.compare_with_baseline(
+            metrics, 0.75
+        ), f"モデル性能がベースラインを下回っています: {metrics['accuracy']}"
 
-    # ベースラインとの比較
-    assert ModelTester.compare_with_baseline(
-        metrics, 0.75
-    ), f"モデル性能がベースラインを下回っています: {metrics['accuracy']}"
-
-    # 推論時間の確認
-    assert (
-        metrics["inference_time"] < 1.0
-    ), f"推論時間が長すぎです: {metrics['inference_time']}秒"
+        # 推論時間の確認
+        assert (
+            metrics["inference_time"] < 1.0
+        ), f"推論時間が長すぎる: {metrics['inference_time']}秒"
